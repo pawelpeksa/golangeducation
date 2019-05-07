@@ -4,6 +4,7 @@ import (
 	"./controllers"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/mgo.v2"
 	"goserver/models"
 	"log"
 	"net/http"
@@ -53,9 +54,30 @@ func register(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 		panic(err)
 	}
 
+	session, err := mgo.Dial("localhost")
+
+	if err != nil {
+		fmt.Printf("\n\nCouldn't open session with mongo with error:%v\n", error.Error)
+		return
+	}
+
+	c := session.DB("db").C("users")
+
+	err = c.Insert(p)
+
+	if err != nil {
+		if mgo.IsDup(err) {
+			fmt.Printf("\nYou're trying to give me duplicate:%v\n", p)
+		}
+	} else {
+		fmt.Printf("\n Looks like success:%v\n", p)
+	}
+
 	fmt.Printf("\n\n%v\n", p.Username)
-	fmt.Printf("\n\n%v\n", p.Password)
-	fmt.Printf("\n\n%v\n", p.Email)
+	fmt.Printf("\n%v\n", p.Password)
+	fmt.Printf("\n%v\n\n", p.Email)
+
+	session.Close()
 }
 
 func main() {
