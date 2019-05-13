@@ -4,12 +4,12 @@ import (
 	"./controllers"
 	"encoding/json"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"goserver/models"
 	"log"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func basicAuth(h httprouter.Handle, requiredUser, requiredPassword string) httprouter.Handle {
@@ -57,11 +57,16 @@ func register(w http.ResponseWriter, r *http.Request, params httprouter.Params) 
 	session, err := mgo.Dial("localhost")
 
 	if err != nil {
-		fmt.Printf("\n\nCouldn't open session with mongo with error:%v\n", error.Error)
+		fmt.Printf("\n\nCouldn't open session with mongo with error:%v\n", err)
 		return
 	}
 
 	c := session.DB("db").C("users")
+
+	count, err := c.Find(bson.M{"username": p.Username}).Limit(1).Count()
+
+	fmt.Printf("\nTEST: %v", count)
+	fmt.Printf("\nEND")
 
 	err = c.Insert(p)
 
