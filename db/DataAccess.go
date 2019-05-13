@@ -9,7 +9,6 @@ type DataAccess struct {
 }
 
 func (da DataAccess) CreateUser(profile models.Profile) error {
-
 	return nil
 }
 

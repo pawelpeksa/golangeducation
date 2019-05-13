@@ -2,12 +2,8 @@ package main
 
 import (
 	"./controllers"
-	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"goserver/models"
 	"log"
 	"net/http"
 )
@@ -44,60 +40,18 @@ func protected(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "I'm protected here!\n")
 }
 
-func register(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	fmt.Fprint(w, "Register me please!\n")
-	decoder := json.NewDecoder(r.Body)
-	var p models.Profile
-	err := decoder.Decode(&p)
-
-	if err != nil {
-		panic(err)
-	}
-
-	session, err := mgo.Dial("localhost")
-
-	if err != nil {
-		fmt.Printf("\n\nCouldn't open session with mongo with error:%v\n", err)
-		return
-	}
-
-	c := session.DB("db").C("users")
-
-	count, err := c.Find(bson.M{"username": p.Username}).Limit(1).Count()
-
-	fmt.Printf("\nTEST: %v", count)
-	fmt.Printf("\nEND")
-
-	err = c.Insert(p)
-
-	if err != nil {
-		if mgo.IsDup(err) {
-			fmt.Printf("\nYou're trying to give me duplicate:%v\n", p)
-		}
-	} else {
-		fmt.Printf("\n Looks like success:%v\n", p)
-	}
-
-	fmt.Printf("\n\n%v\n", p.Username)
-	fmt.Printf("\n%v\n", p.Password)
-	fmt.Printf("\n%v\n\n", p.Email)
-
-	session.Close()
-}
-
 func main() {
 	fmt.Println("I'm working 0.1")
 
 	r := httprouter.New()
 
 	rc := controllers.RegistrationController{}
-	rc.PrintMePlease()
 
 	r.POST("/login", login)
 
 	r.POST("/logout", logout)
 
-	r.POST("/register", register)
+	r.POST("/register", rc.Register)
 
 	r.GET("/ping", ping)
 
