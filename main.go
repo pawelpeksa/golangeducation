@@ -45,7 +45,7 @@ func main() {
 
 	r := httprouter.New()
 
-	rc := controllers.RegistrationController{}
+	rc := controllers.NewRegistrationController()
 
 	r.POST("/login", login)
 
