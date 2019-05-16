@@ -2,10 +2,16 @@ package db
 
 import (
 	"goserver/models"
+	"gopkg.in/mgo.v2"
+	//"goserver/db"
 )
 
 type DataAccess struct {
-	test models.Profile
+	session *mgo.Session
+}
+
+func NewDataAccess() *DataAccessing {
+	return nil
 }
 
 func (da DataAccess) CreateUser(profile models.Profile) error {
