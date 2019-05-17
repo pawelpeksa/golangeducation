@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"gopkg.in/mgo.v2"
 	"goserver/db"
 	"goserver/models"
 	"goserver/utils"
@@ -13,7 +12,6 @@ import (
 
 type registrationController struct {
 	da      db.DataAccessing
-	session *mgo.Session
 }
 
 func NewRegistrationController(da db.DataAccessing) *registrationController {
