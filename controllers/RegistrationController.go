@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	"goserver/db"
 	"goserver/models"
 	"goserver/utils"
@@ -13,14 +12,13 @@ import (
 )
 
 type registrationController struct {
-	da      db.DataAccess
+	da      db.DataAccessing
 	session *mgo.Session
 }
 
-func NewRegistrationController() *registrationController {
+func NewRegistrationController(da db.DataAccessing) *registrationController {
 	rc := new(registrationController)
-	s, _ := mgo.Dial("localhost")
-	rc.session = s
+	rc.da = da
 	return rc
 }
 
@@ -29,38 +27,28 @@ func (rc registrationController) Register(w http.ResponseWriter, r *http.Request
 	var p models.Profile
 	err := decoder.Decode(&p)
 
-	p.Password = utils.Encryptor{}.Encrypt(p.Password)
-
 	if err != nil {
-		panic(err)
-		// TOOD: return HTTP STATUS
-	}
-
-	if err != nil {
-		fmt.Printf("\n\nCouldn't open session with mongo with error:%v\n", err)
+		fmt.Printf("\nJson went wrong:%v\n", err)
 		// TOOD: return HTTP STATUS
 		return
 	}
 
-	c := rc.session.DB("db").C("users")
+	p.Password = utils.Encryptor{}.Encrypt(p.Password)
 
-	count, err := c.Find(bson.M{"username": p.Username}).Limit(1).Count()
+	doesUserExist := rc.da.DoesUserExist(p.Username)
 
-	if count > 0 {
+	if doesUserExist {
 		fmt.Printf("Username already taken\n")
 		// TODO: return https status with message
 		fmt.Fprint(w, "Username already taken\n")
 		return
 	}
 
-	fmt.Printf("\nTEST: %v", count)
-	fmt.Printf("\nEND")
-
-	err = c.Insert(p)
+	
+	err = rc.da.CreateUser(p)
 
 	if err != nil {
 		fmt.Printf("\nSomething went wrong:%v\n", err)
-		// TOOD: return HTTP STATUS
 	} else {
 		fmt.Printf("\n Looks like success:%v\n", p)
 	}

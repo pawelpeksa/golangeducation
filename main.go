@@ -2,6 +2,7 @@ package main
 
 import (
 	"./controllers"
+	"./db"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"log"
@@ -45,7 +46,8 @@ func main() {
 
 	r := httprouter.New()
 
-	rc := controllers.NewRegistrationController()
+	da := db.NewDataAccess()
+	rc := controllers.NewRegistrationController(da)
 
 	r.POST("/login", login)
 
