@@ -33,8 +33,17 @@ func logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "Welcome!\n")
 }
 
-func ping(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "ping!\n")
+func ping(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	count, _ := r.URL.Query()["count"]
+
+	n := "BLA"
+
+	if len(count) > 0 {
+		n = count[0]
+	}
+
+	fmt.Printf("ping! param:%v\n", n)
+	fmt.Fprintf(w, "ping! param:%v\n", n)
 }
 
 func protected(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
