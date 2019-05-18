@@ -52,5 +52,5 @@ func (rc registrationController) Register(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	common.RespondError(w, http.StatusOK, "Username created")
+	common.RespondJSON(w, http.StatusOK, "Username created")
 }
