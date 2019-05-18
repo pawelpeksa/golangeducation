@@ -1,20 +1,22 @@
 package db
 
 import (
-	"goserver/models"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"goserver/models"
 )
 
-const dbAddress = "10.16.22.198"
+//const dbAddress = "10.16.22.198"
+const dbAddress = "localhost"
 
 type DataAccess struct {
 	session *mgo.Session
 }
 
 func NewDataAccess() DataAccessing {
+	// TODO: handle error while connecting
 	session, _ := mgo.Dial(dbAddress)
-	
+
 	da := new(DataAccess)
 	da.session = session
 
