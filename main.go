@@ -55,12 +55,19 @@ func main() {
 
 	r := httprouter.New()
 
-	da := db.NewDataAccess()
+	da, err := db.NewDataAccess()
+
+	if err != nil {
+		fmt.Printf("Can not start server because of no connection to database:%v \n", err)
+		return
+	}
+
 	rc := controllers.NewRegistrationController(da)
+	la := controllers.NewLoginController(da)
 
-	r.POST("/login", login)
+	r.POST("/login", la.Login)
 
-	r.POST("/logout", logout)
+	r.POST("/logout", la.Logout)
 
 	r.POST("/register", rc.Register)
 
@@ -69,7 +76,7 @@ func main() {
 	r.GET("/protected", basicAuth(protected, "testingo1", "testingo1"))
 
 	// err := http.ListenAndServeTLS(":443", "server.crt", "server.key", r)
-	err := http.ListenAndServe(":8083", r)
+	err = http.ListenAndServe(":8083", r)
 
 	log.Fatal(err)
 }

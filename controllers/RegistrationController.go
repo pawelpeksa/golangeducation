@@ -32,13 +32,18 @@ func (rc registrationController) Register(w http.ResponseWriter, r *http.Request
 	}
 
 	if p.Username == "" || p.Email == "" || p.Password == "" {
-		common.RespondError(w, http.StatusBadRequest, "Bad request")
+		common.RespondError(w, http.StatusBadRequest, "Missing data in json sent to server")
 		return
 	}
 
 	p.Password = common.Encryptor{}.Encrypt(p.Password)
 
-	doesUserExist := rc.da.DoesUserExist(p.Username)
+	doesUserExist, err := rc.da.DoesUserExist(p.Username)
+
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	if doesUserExist {
 		common.RespondError(w, http.StatusConflict, "Username taken")

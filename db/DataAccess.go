@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"goserver/models"
@@ -13,14 +14,13 @@ type DataAccess struct {
 	session *mgo.Session
 }
 
-func NewDataAccess() DataAccessing {
-	// TODO: handle error while connecting
-	session, _ := mgo.Dial(dbAddress)
-
+func NewDataAccess() (DataAccessing, error) {
 	da := new(DataAccess)
+
+	session, err := mgo.Dial(dbAddress)
 	da.session = session
 
-	return da
+	return da, err
 }
 
 func (da DataAccess) CreateUser(profile models.Profile) error {
@@ -29,15 +29,27 @@ func (da DataAccess) CreateUser(profile models.Profile) error {
 	return err
 }
 
-func (da DataAccess) DoesUserExist(username string) bool {
+func (da DataAccess) DoesUserExist(username string) (bool, error) {
 
 	c := da.session.DB("db").C("users")
 
 	count, err := c.Find(bson.M{"username": username}).Limit(1).Count()
 
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return count > 0
+	return count > 0, nil
+}
+
+func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
+	return false, errors.New("TODO")
+}
+
+func (da DataAccess) AddBearer(bearer string) error {
+	return errors.New("TODO")
+}
+
+func (da DataAccess) RemoveBearer(bearer string) error {
+	return errors.New("TODO")
 }
