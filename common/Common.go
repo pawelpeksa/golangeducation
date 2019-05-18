@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"github.com/nu7hatch/gouuid"
 	"net/http"
 )
 
@@ -19,4 +20,9 @@ func RespondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write([]byte(response))
+}
+
+func UUID() (string, error) {
+	uuid, err := uuid.NewV4()
+	return uuid.String(), err
 }
