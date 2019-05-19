@@ -3,11 +3,12 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"goserver/common"
 	"goserver/db"
 	"goserver/models"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type registrationController struct {

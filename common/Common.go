@@ -2,8 +2,9 @@ package common
 
 import (
 	"encoding/json"
-	"github.com/nu7hatch/gouuid"
 	"net/http"
+
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 func RespondError(w http.ResponseWriter, code int, message string) {

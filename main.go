@@ -1,12 +1,14 @@
 package main
 
 import (
-	"./controllers"
-	"./db"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
+
+	"goserver/controllers"
+	"goserver/db"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func basicAuth(h httprouter.Handle, requiredUser, requiredPassword string) httprouter.Handle {

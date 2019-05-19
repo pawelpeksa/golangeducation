@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"goserver/common"
 	"goserver/db"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type loginController struct {
