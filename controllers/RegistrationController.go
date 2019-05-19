@@ -50,7 +50,7 @@ func (rc registrationController) Register(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = rc.da.CreateUser(p)
+	err = rc.da.AddUser(p)
 
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())

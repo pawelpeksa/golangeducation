@@ -51,7 +51,7 @@ func protected(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func main() {
-	fmt.Println("I'm working 0.1")
+	fmt.Println("Starting server 0.001 . . .")
 
 	r := httprouter.New()
 
@@ -75,8 +75,10 @@ func main() {
 
 	r.GET("/protected", basicAuth(protected, "testingo1", "testingo1"))
 
+	port := "8083"
+	fmt.Printf("I'm listening on %v . . .\n", port)
 	// err := http.ListenAndServeTLS(":443", "server.crt", "server.key", r)
-	err = http.ListenAndServe(":8083", r)
+	err = http.ListenAndServe(":"+port, r)
 
 	log.Fatal(err)
 }
