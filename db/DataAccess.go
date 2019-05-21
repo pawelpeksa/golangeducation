@@ -8,8 +8,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-//const dbAddress = "10.16.22.198"
-const dbAddress = "localhost"
+const dbAddress = "10.16.22.198"
+//const dbAddress = "localhost"
 
 type DataAccess struct {
 	session *mgo.Session
@@ -60,7 +60,9 @@ func (da DataAccess) AddBearer(username string, bearer string) error {
 }
 
 func (da DataAccess) RemoveBearer(bearer string) error {
-	return errors.New("TODO")
+	c := da.session.DB("db").C("bearers")
+	err := c.Remove(bson.M{"bearer": bearer})
+	return err
 }
 
 func (da DataAccess) AreCredentaialsOk(username string, encryptedPassword string) (bool, error) {

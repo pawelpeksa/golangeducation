@@ -4,7 +4,7 @@ import (
 	"goserver/common"
 	"goserver/db"
 	"net/http"
-
+	"strings"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -67,6 +67,29 @@ func (lc loginController) Login(w http.ResponseWriter, r *http.Request, params h
 	common.RespondJSON(w, http.StatusOK, map[string]string{"Bearer": uuid})
 }
 
-func (rc loginController) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	header := r.Header.Get("Authorization")
 
+	parts := strings.Split(header, " ")
+
+	if len(parts) != 2 {
+		common.RespondError(w, http.StatusBadRequest, "Bad request")
+		return
+	}
+
+	if parts[0] != "Bearer" {
+		common.RespondError(w, http.StatusBadRequest, "Bad request")
+		return
+	}
+
+	bearer := parts[1]
+
+	err := lc.da.RemoveBearer(bearer)
+
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	common.RespondJSON(w, http.StatusOK, nil)
 }
