@@ -68,21 +68,13 @@ func (lc loginController) Login(w http.ResponseWriter, r *http.Request, params h
 }
 
 func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	header := r.Header.Get("Authorization")
 
-	parts := strings.Split(header, " ")
+	bearer := lc.bearerFromRequest(r)
 
-	if len(parts) != 2 {
+	if bearer == "" {
 		common.RespondError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
-
-	if parts[0] != "Bearer" {
-		common.RespondError(w, http.StatusBadRequest, "Bad request")
-		return
-	}
-
-	bearer := parts[1]
 
 	isBearerValid, err := lc.da.IsBearerValid(bearer)
 	
@@ -104,5 +96,46 @@ func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	common.RespondJSON(w, http.StatusOK, "Logged out")
+}
+
+func (lc loginController) Authenticate(h httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		bearer := lc.bearerFromRequest(r)
+
+		if bearer == "" {
+			common.RespondError(w, http.StatusBadRequest, "Bad request")
+			return
+		}
+
+		isBearerValid, err := lc.da.IsBearerValid(bearer)
+		
+		if err != nil {
+			common.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		if !isBearerValid {
+			common.RespondError(w, http.StatusUnauthorized, "not authorized")
+			return
+		}
+
+		h(w, r, params)
+	}
+}
+
+func (lc loginController) bearerFromRequest(r *http.Request) string {
+	header := r.Header.Get("Authorization")
+
+	parts := strings.Split(header, " ")
+
+	if len(parts) != 2 {
+		return ""
+	}
+
+	if parts[0] != "Bearer" {
+		return ""
+	}
+
+	return parts[1]
 }
 

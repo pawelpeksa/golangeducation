@@ -11,21 +11,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func basicAuth(h httprouter.Handle, requiredUser, requiredPassword string) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		// Get the Basic Authentication credentials
-		user, password, hasAuth := r.BasicAuth()
-
-		if hasAuth && user == requiredUser && password == requiredPassword {
-			// Delegate request to the given handle
-			h(w, r, ps)
-		} else {
-			// Request Basic Authentication otherwise
-			w.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		}
-	}
-}
 
 func login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "Welcome!\n")
@@ -65,17 +50,15 @@ func main() {
 	}
 
 	rc := controllers.NewRegistrationController(da)
-	la := controllers.NewLoginController(da)
+	lc := controllers.NewLoginController(da)
 
-	r.POST("/login", la.Login)
+	r.POST("/login", lc.Login)
 
-	r.POST("/logout", la.Logout)
+	r.POST("/logout", lc.Authenticate(lc.Logout))
 
 	r.POST("/register", rc.Register)
 
 	r.GET("/ping", ping)
-
-	r.GET("/protected", basicAuth(protected, "testingo1", "testingo1"))
 
 	port := "8083"
 	fmt.Printf("I'm listening on %v . . .\n", port)

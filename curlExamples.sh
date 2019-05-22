@@ -10,4 +10,4 @@ curl -v --header "Content-Type: application/json" \
   
   
 
-  curl -v --request POST -H 'Accept: application/json' -H "Authorization: Bearer a2e3663d-48a5-4564-645c-cc734b00899f"  http://goserver.pl:8083/logout
+  curl -v --request POST -H 'Accept: application/json' -H "Authorization: Bearer dc55e2b5-c520-4640-5101-38e250beba5d"  http://goserver.pl:8083/logout
