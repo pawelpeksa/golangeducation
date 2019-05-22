@@ -9,16 +9,11 @@ import (
 	"goserver/db"
 
 	"github.com/julienschmidt/httprouter"
+	"gopkg.in/mgo.v2"
 )
 
-
-func login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
-}
-
-func logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
-}
+const dbAddress = "10.16.22.198"
+//const dbAddress = "localhost"
 
 func ping(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	count, _ := r.URL.Query()["count"]
@@ -33,21 +28,20 @@ func ping(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	fmt.Fprintf(w, "ping! param:%v\n", n)
 }
 
-func protected(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "I'm protected here!\n")
-}
-
 func main() {
 	fmt.Println("Starting server 0.001 . . .")
 
 	r := httprouter.New()
 
-	da, err := db.NewDataAccess()
+	session, err := mgo.Dial(dbAddress)
+	defer session.Close()
 
 	if err != nil {
 		fmt.Printf("Can not start server because of no connection to database:%v \n", err)
 		return
 	}
+
+	da := db.NewDataAccess(session)
 
 	rc := controllers.NewRegistrationController(da)
 	lc := controllers.NewLoginController(da)

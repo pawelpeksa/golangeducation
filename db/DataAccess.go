@@ -8,9 +8,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-const dbAddress = "10.16.22.198"
-//const dbAddress = "localhost"
-
 type DataAccess struct {
 	session *mgo.Session
 }
@@ -20,13 +17,10 @@ type bearerStruct struct {
 	Bearer   string
 }
 
-func NewDataAccess() (DataAccessing, error) {
+func NewDataAccess(session *mgo.Session) (DataAccessing) {
 	da := new(DataAccess)
-
-	session, err := mgo.Dial(dbAddress)
 	da.session = session
-
-	return da, err
+	return da
 }
 
 func (da DataAccess) AddUser(profile models.Profile) error {
