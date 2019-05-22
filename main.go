@@ -54,7 +54,7 @@ func main() {
 
 	r.POST("/login", lc.Login)
 
-	r.POST("/logout", lc.Authenticate(lc.Logout))
+	r.POST("/logout", lc.Authorize(lc.Logout))
 
 	r.POST("/register", rc.Register)
 

@@ -98,7 +98,7 @@ func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params 
 	common.RespondJSON(w, http.StatusOK, "Logged out")
 }
 
-func (lc loginController) Authenticate(h httprouter.Handle) httprouter.Handle {
+func (lc loginController) Authorize(h httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 		bearer := lc.bearerFromRequest(r)
 
