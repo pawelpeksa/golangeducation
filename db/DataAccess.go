@@ -49,7 +49,20 @@ func (da DataAccess) DoesUserExist(username string) (bool, error) {
 }
 
 func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
-	return false, errors.New("TODO")
+	c := da.session.DB("db").C("bearers")
+	query := c.Find(bson.M{"bearer": bearer}).Limit(1)
+
+	count, err := query.Count()
+
+	if err != nil {
+		return false, err
+	}
+
+	if count == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 func (da DataAccess) AddBearer(username string, bearer string) error {

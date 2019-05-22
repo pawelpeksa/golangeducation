@@ -84,12 +84,25 @@ func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params 
 
 	bearer := parts[1]
 
-	err := lc.da.RemoveBearer(bearer)
+	isBearerValid, err := lc.da.IsBearerValid(bearer)
+	
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if !isBearerValid {
+		common.RespondError(w, http.StatusUnauthorized, "not authorized")
+		return
+	}
+
+	err = lc.da.RemoveBearer(bearer)
 
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	common.RespondJSON(w, http.StatusOK, nil)
+	common.RespondJSON(w, http.StatusOK, "Logged out")
 }
+
