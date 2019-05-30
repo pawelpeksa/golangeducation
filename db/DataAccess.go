@@ -8,9 +8,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-//const dbAddress = "10.16.22.198"
-const dbAddress = "localhost"
-
 type DataAccess struct {
 	session *mgo.Session
 }
@@ -20,13 +17,10 @@ type bearerStruct struct {
 	Bearer   string
 }
 
-func NewDataAccess() (DataAccessing, error) {
+func NewDataAccess(session *mgo.Session) (DataAccessing) {
 	da := new(DataAccess)
-
-	session, err := mgo.Dial(dbAddress)
 	da.session = session
-
-	return da, err
+	return da
 }
 
 func (da DataAccess) AddUser(profile models.Profile) error {
@@ -49,7 +43,20 @@ func (da DataAccess) DoesUserExist(username string) (bool, error) {
 }
 
 func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
-	return false, errors.New("TODO")
+	c := da.session.DB("db").C("bearers")
+	query := c.Find(bson.M{"bearer": bearer}).Limit(1)
+
+	count, err := query.Count()
+
+	if err != nil {
+		return false, err
+	}
+
+	if count == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 func (da DataAccess) AddBearer(username string, bearer string) error {
@@ -60,7 +67,9 @@ func (da DataAccess) AddBearer(username string, bearer string) error {
 }
 
 func (da DataAccess) RemoveBearer(bearer string) error {
-	return errors.New("TODO")
+	c := da.session.DB("db").C("bearers")
+	err := c.Remove(bson.M{"bearer": bearer})
+	return err
 }
 
 func (da DataAccess) AreCredentaialsOk(username string, encryptedPassword string) (bool, error) {

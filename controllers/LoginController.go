@@ -4,7 +4,7 @@ import (
 	"goserver/common"
 	"goserver/db"
 	"net/http"
-
+	"strings"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -67,6 +67,75 @@ func (lc loginController) Login(w http.ResponseWriter, r *http.Request, params h
 	common.RespondJSON(w, http.StatusOK, map[string]string{"Bearer": uuid})
 }
 
-func (rc loginController) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 
+	bearer := lc.bearerFromRequest(r)
+
+	if bearer == "" {
+		common.RespondError(w, http.StatusBadRequest, "Bad request")
+		return
+	}
+
+	isBearerValid, err := lc.da.IsBearerValid(bearer)
+	
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if !isBearerValid {
+		common.RespondError(w, http.StatusUnauthorized, "not authorized")
+		return
+	}
+
+	err = lc.da.RemoveBearer(bearer)
+
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	common.RespondJSON(w, http.StatusOK, "Logged out")
 }
+
+func (lc loginController) Authorize(h httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+		bearer := lc.bearerFromRequest(r)
+
+		if bearer == "" {
+			common.RespondError(w, http.StatusBadRequest, "Bad request")
+			return
+		}
+
+		isBearerValid, err := lc.da.IsBearerValid(bearer)
+		
+		if err != nil {
+			common.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		if !isBearerValid {
+			common.RespondError(w, http.StatusUnauthorized, "not authorized")
+			return
+		}
+
+		h(w, r, params)
+	}
+}
+
+func (lc loginController) bearerFromRequest(r *http.Request) string {
+	header := r.Header.Get("Authorization")
+
+	parts := strings.Split(header, " ")
+
+	if len(parts) != 2 {
+		return ""
+	}
+
+	if parts[0] != "Bearer" {
+		return ""
+	}
+
+	return parts[1]
+}
+
