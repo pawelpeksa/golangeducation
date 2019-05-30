@@ -5,6 +5,7 @@ import (
 	"goserver/db"
 	"net/http"
 	"strings"
+
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -26,21 +27,26 @@ func (lc loginController) Login(w http.ResponseWriter, r *http.Request, params h
 		return
 	}
 
-	encryptedPassword := common.Encryptor{}.Encrypt(password)
-
-	areCredentaialsOk, err := lc.da.AreCredentaialsOk(username, encryptedPassword)
+	hashedPassword, doesUsernameExist, err := lc.da.HashForUsername(username)
 
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	if !doesUsernameExist {
+		common.RespondError(w, http.StatusUnauthorized, "Wrong username or password")
+		return
+	}
+
+	areCredentaialsOk := common.Encryptor{}.CompareHashAndPassword(password, hashedPassword)
+
 	if !areCredentaialsOk {
 		common.RespondError(w, http.StatusUnauthorized, "Wrong username or password")
 		return
 	}
 
-	bearer, err := lc.da.GetBearerForUser(username)
+	bearer, err := lc.da.GetBearerForUsername(username)
 
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
@@ -77,14 +83,14 @@ func (lc loginController) Logout(w http.ResponseWriter, r *http.Request, params 
 	}
 
 	isBearerValid, err := lc.da.IsBearerValid(bearer)
-	
+
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	if !isBearerValid {
-		common.RespondError(w, http.StatusUnauthorized, "not authorized")
+		common.RespondError(w, http.StatusUnauthorized, "Not authorized")
 		return
 	}
 
@@ -108,14 +114,14 @@ func (lc loginController) Authorize(h httprouter.Handle) httprouter.Handle {
 		}
 
 		isBearerValid, err := lc.da.IsBearerValid(bearer)
-		
+
 		if err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		if !isBearerValid {
-			common.RespondError(w, http.StatusUnauthorized, "not authorized")
+			common.RespondError(w, http.StatusUnauthorized, "Not authorized")
 			return
 		}
 
@@ -138,4 +144,3 @@ func (lc loginController) bearerFromRequest(r *http.Request) string {
 
 	return parts[1]
 }
-

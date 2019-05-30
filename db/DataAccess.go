@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"goserver/models"
 
 	"gopkg.in/mgo.v2"
@@ -76,12 +75,29 @@ func (da DataAccess) RemoveBearer(bearer string) error {
 	return err
 }
 
-func (da DataAccess) AreCredentaialsOk(username string, encryptedPassword string) (bool, error) {
-	return true, nil
-	return false, errors.New("TODO")
+func (da DataAccess) HashForUsername(username string) (string, bool, error) {
+	profile := models.Profile{}
+
+	c := da.session().DB("db").C("users")
+	query := c.Find(bson.M{"username": username}).Limit(1)
+	count, err := query.Count()
+
+	if err != nil {
+		return "", false, err
+	}
+
+	doesUserExist := count > 0
+
+	if !doesUserExist {
+		return "", false, nil
+	}
+
+	err = query.One(&profile)
+
+	return profile.Password, true, err
 }
 
-func (da DataAccess) GetBearerForUser(username string) (string, error) {
+func (da DataAccess) GetBearerForUsername(username string) (string, error) {
 	bearerObject := bearerStruct{}
 
 	c := da.session().DB("db").C("bearers")

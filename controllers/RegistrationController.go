@@ -42,7 +42,12 @@ func (rc registrationController) Register(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	p.Password = common.Encryptor{}.Encrypt(p.Password)
+	p.Password, err = common.Encryptor{}.Encrypt(p.Password)
+
+	if err != nil {
+		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	doesUserExist, err := rc.da.DoesUserExist(p.Username)
 
