@@ -12,8 +12,8 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-const dbAddress = "10.16.22.198"
-//const dbAddress = "localhost"
+//const dbAddress = "10.16.22.198"
+const dbAddress = "localhost"
 
 func ping(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	count, _ := r.URL.Query()["count"]
@@ -34,12 +34,13 @@ func main() {
 	r := httprouter.New()
 
 	session, err := mgo.Dial(dbAddress)
-	defer session.Close()
 
 	if err != nil {
 		fmt.Printf("Can not start server because of no connection to database:%v \n", err)
 		return
 	}
+
+	defer session.Close()
 
 	da := db.NewDataAccess(session)
 

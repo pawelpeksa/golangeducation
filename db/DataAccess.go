@@ -9,7 +9,7 @@ import (
 )
 
 type DataAccess struct {
-	session *mgo.Session
+	dataStore DataStore
 }
 
 type bearerStruct struct {
@@ -17,21 +17,25 @@ type bearerStruct struct {
 	Bearer   string
 }
 
-func NewDataAccess(session *mgo.Session) (DataAccessing) {
+func NewDataAccess(session *mgo.Session) DataAccessing {
 	da := new(DataAccess)
-	da.session = session
+	da.dataStore = DataStore{session}
 	return da
 }
 
+func (da DataAccess) session() *mgo.Session {
+	return da.dataStore.session()
+}
+
 func (da DataAccess) AddUser(profile models.Profile) error {
-	c := da.session.DB("db").C("users")
+	c := da.session().DB("db").C("users")
 	err := c.Insert(profile)
 	return err
 }
 
 func (da DataAccess) DoesUserExist(username string) (bool, error) {
 
-	c := da.session.DB("db").C("users")
+	c := da.session().DB("db").C("users")
 
 	count, err := c.Find(bson.M{"username": username}).Limit(1).Count()
 
@@ -43,7 +47,7 @@ func (da DataAccess) DoesUserExist(username string) (bool, error) {
 }
 
 func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
-	c := da.session.DB("db").C("bearers")
+	c := da.session().DB("db").C("bearers")
 	query := c.Find(bson.M{"bearer": bearer}).Limit(1)
 
 	count, err := query.Count()
@@ -60,14 +64,14 @@ func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
 }
 
 func (da DataAccess) AddBearer(username string, bearer string) error {
-	c := da.session.DB("db").C("bearers")
+	c := da.session().DB("db").C("bearers")
 	bearerObject := bearerStruct{username, bearer}
 	err := c.Insert(bearerObject)
 	return err
 }
 
 func (da DataAccess) RemoveBearer(bearer string) error {
-	c := da.session.DB("db").C("bearers")
+	c := da.session().DB("db").C("bearers")
 	err := c.Remove(bson.M{"bearer": bearer})
 	return err
 }
@@ -80,7 +84,7 @@ func (da DataAccess) AreCredentaialsOk(username string, encryptedPassword string
 func (da DataAccess) GetBearerForUser(username string) (string, error) {
 	bearerObject := bearerStruct{}
 
-	c := da.session.DB("db").C("bearers")
+	c := da.session().DB("db").C("bearers")
 	query := c.Find(bson.M{"username": username}).Limit(1)
 
 	count, err := query.Count()

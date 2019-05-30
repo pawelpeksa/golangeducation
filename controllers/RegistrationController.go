@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"goserver/common"
 	"goserver/db"
 	"goserver/models"
@@ -20,13 +21,13 @@ func NewRegistrationController(da db.DataAccessing) *registrationController {
 	return rc
 }
 
-
 // 	Required parameters for request
 // 	Username string
 //	Password string
 //	Email    string
 
 func (rc registrationController) Register(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	fmt.Printf("Register\n")
 	decoder := json.NewDecoder(r.Body)
 	var p models.Profile
 	err := decoder.Decode(&p)
