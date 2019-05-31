@@ -22,19 +22,15 @@ func NewDataAccess(session *mgo.Session) DataAccessing {
 	return da
 }
 
-func (da DataAccess) session() *mgo.Session {
-	return da.dataStore.session()
-}
-
 func (da DataAccess) AddUser(profile models.Profile) error {
-	c := da.session().DB("db").C("users")
+	c := da.usersCollection()
 	err := c.Insert(profile)
 	return err
 }
 
 func (da DataAccess) DoesUserExist(username string) (bool, error) {
 
-	c := da.session().DB("db").C("users")
+	c := da.usersCollection()
 
 	count, err := c.Find(bson.M{"username": username}).Limit(1).Count()
 
@@ -46,7 +42,7 @@ func (da DataAccess) DoesUserExist(username string) (bool, error) {
 }
 
 func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
-	c := da.session().DB("db").C("bearers")
+	c := da.bearersCollection()
 	query := c.Find(bson.M{"bearer": bearer}).Limit(1)
 
 	count, err := query.Count()
@@ -63,14 +59,14 @@ func (da DataAccess) IsBearerValid(bearer string) (bool, error) {
 }
 
 func (da DataAccess) AddBearer(username string, bearer string) error {
-	c := da.session().DB("db").C("bearers")
+	c := da.bearersCollection()
 	bearerObject := bearerStruct{username, bearer}
 	err := c.Insert(bearerObject)
 	return err
 }
 
 func (da DataAccess) RemoveBearer(bearer string) error {
-	c := da.session().DB("db").C("bearers")
+	c := da.bearersCollection()
 	err := c.Remove(bson.M{"bearer": bearer})
 	return err
 }
@@ -78,7 +74,7 @@ func (da DataAccess) RemoveBearer(bearer string) error {
 func (da DataAccess) HashForUsername(username string) (string, bool, error) {
 	profile := models.Profile{}
 
-	c := da.session().DB("db").C("users")
+	c := da.usersCollection()
 	query := c.Find(bson.M{"username": username}).Limit(1)
 	count, err := query.Count()
 
@@ -100,8 +96,8 @@ func (da DataAccess) HashForUsername(username string) (string, bool, error) {
 func (da DataAccess) GetBearerForUsername(username string) (string, error) {
 	bearerObject := bearerStruct{}
 
-	c := da.session().DB("db").C("bearers")
-	query := c.Find(bson.M{"username": username}).Limit(1)
+	bearers := da.bearersCollection()
+	query := bearers.Find(bson.M{"username": username}).Limit(1)
 
 	count, err := query.Count()
 
@@ -116,4 +112,20 @@ func (da DataAccess) GetBearerForUsername(username string) (string, error) {
 	err = query.One(&bearerObject)
 
 	return bearerObject.Bearer, err
+}
+
+func (da DataAccess) session() *mgo.Session {
+	return da.dataStore.session()
+}
+
+const dbName   = "db"
+const usersC   = "users"
+const bearersC = "bearers"
+
+func (da DataAccess) usersCollection() *mgo.Collection {
+	return da.session().DB(dbName).C(usersC)
+}
+
+func (da DataAccess) bearersCollection() *mgo.Collection {
+	return da.session().DB(dbName).C(bearersC)
 }
